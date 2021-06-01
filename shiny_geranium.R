@@ -1,18 +1,24 @@
 ## shiny geranium GBIF data download and cleaning ----
 
 install.packages("devtools")
-install
+install.packages("CoordinateCleaner")
+install.packages("countrycode")
+install.packages("rnaturalearthdata")
 
 # load packages 
 library(rgbif)
 library(scrubr)
 library(maps)
 library(dplyr)
-library("sp")
-library("raster")
-library("maptools")
-library("rgdal")
-library("dismo")
+library(sp)
+library(raster)
+library(maptools)
+library(rgdal)
+library(dismo)
+library(countrycode)
+library(CoordinateCleaner)
+library(ggplot2)
+library(devtools)
 
 myspecies <- c("Geranium lucidum")
 shiny_geranium_gbif <- occ_data(scientificName = myspecies, hasCoordinate = TRUE, hasGeospatialIssue = FALSE, limit = 40000)
@@ -22,6 +28,11 @@ shiny_geranium_gbif
 Geranium_data <- shiny_geranium_gbif$data[ , c("species", "decimalLongitude", "decimalLatitude", "issues", "countryCode", "individualCount", "occurrenceStatus", 
                                                "coordinateUncertaintyInMeters", "institutionCode", "gbifID", "references", "basisOfRecord", 
                                                "year", "month", "day", "eventDate", "geodeticDatum", "datasetName")] 
+
+# remove records without coordinates
+Geranium_data <- Geranium_data%>%
+  filter(!is.na(decimalLongitude))%>%
+  filter(!is.na(decimalLatitude))
 
 # map the occurrence data:
 map("world", xlim = range(Geranium_data$decimalLongitude), ylim = range(Geranium_data$decimalLatitude))  # if the map doesn't appear right at first, run this command again
@@ -53,12 +64,54 @@ points(x = Geranium_data$decimalLongitude,
 # And draw a little box around the graph
 box()
 
-#########################################################
+############ALTERNATE MAP 2#############################################
+#plot data to get an overview
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = Geranium_data, aes(x = decimalLongitude, y = decimalLatitude),
+             colour = "darkred", size = 0.5)+
+  theme_bw()
 
 ### Cleaning the data ----
 
 head(Geranium_data)
-# 
+# using CoordinateCleaner
+#convert country code from ISO2c to ISO3c (so coordinatecleaner can use it)
+Geranium_data$countryCode <-  countrycode(Geranium_data$countryCode, origin =  'iso2c', destination = 'iso3c')
+
+#flag problems
+Geranium_data <- data.frame(Geranium_data)
+flags <- clean_coordinates(x = Geranium_data, 
+                           lon = "decimalLongitude", 
+                           lat = "decimalLatitude",
+                           countries = "countryCode",
+                           species = "species",
+                           tests = c("capitals", "centroids", "equal","gbif", "institutions",
+                                     "zeros", "countries")) # most test are on by default
+# to remove all flagged results
+#to avoid specifying it in each function
+names(Geranium_data)[2:3] <- c("decimallongitude", "decimallatitude")
+
+clean <- Geranium_data%>%
+  cc_val()%>%
+  cc_equ()%>%
+  cc_cap()%>%
+  cc_cen()%>%
+  cc_coun(iso3 = "countryCode")%>%
+  cc_gbif()%>%
+  cc_inst()%>%
+  cc_sea()%>%
+  cc_zero()%>%
+  cc_outl()%>%
+  cc_dupl()
+# rename
+Geranium_data_clean <- clean
+# replot world map
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = Geranium_data_clean, aes(x = decimallongitude, y = decimallatitude),
+             colour = "darkred", size = 0.5)+
+  theme_bw()
 
 # remove records of absence or zero-abundance (if any):
 names(Geranium_data)
@@ -74,5 +127,9 @@ if (length(absence_rows) > 0) {
 nrow(Geranium_data)
 Geranium_data <- coord_incomplete(coord_imprecise(coord_impossible(coord_unlikely(Geranium_data))))
 nrow(Geranium_data)
+
+# coordinate uncertainty <1000m
+Geranium_data_clean <- coord_uncertain(Geranium_data_clean, coorduncertainityLimit = 1000)
+nrow(Geranium_data_clean)
 
 # remove rows with NA 
