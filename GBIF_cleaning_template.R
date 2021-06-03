@@ -135,3 +135,16 @@ Geranium_data_train <- Geranium_data_clean%>%
 
 Geranium_data_test <- Geranium_data_clean%>%
   filter(between(year, 2001, 2020)) # leaves 4019 records
+
+# can check on map!
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = Geranium_data_train, aes(x = decimallongitude, y = decimallatitude),
+             colour = "yellow", size = 0.5)+
+  theme_bw()
+
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = Geranium_data_test, aes(x = decimallongitude, y = decimallatitude),
+             colour = "orange", size = 0.5)+
+  theme_bw()
