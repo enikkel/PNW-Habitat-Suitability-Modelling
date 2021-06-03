@@ -28,7 +28,7 @@ myspecies <- c("Geranium lucidum")
 shiny_geranium_gbif <- occ_data(scientificName = myspecies, 
                                 hasCoordinate = TRUE, 
                                 hasGeospatialIssue = FALSE, 
-                                limit = 40000) #limit based on estimated available on GBIF website
+                                limit = 45000) #limit based on estimated available on GBIF website
 # to view:
 shiny_geranium_gbif
 
@@ -51,15 +51,39 @@ ggplot()+ coord_fixed()+ wm +
 ##### Clean records #####
 
 # remove records without coordinates (should not have been included in download but just in case)
+# remove rows with N/A 
 Geranium_data <- Geranium_data%>%
   filter(!is.na(decimalLongitude))%>%
-  filter(!is.na(decimalLatitude))
+  filter(!is.na(decimalLatitude))%>%
+  filter(!is.na(countryCode))%>%
+  filter(!is.na(occurrenceStatus))%>%
+  filter(!is.na(coordinateUncertaintyInMeters))%>%
+  filter(!is.na(institutionCode))%>%
+  filter(!is.na(geodeticDatum))%>%
+  filter(occurrenceStatus != "ABSENT") # removes all 'absent' records
 
-# using CoordinateCleaner
+# remove records pre-1970 and 2021
+Geranium_data <- Geranium_data%>%
+  filter(between(year, 1970, 2020))
+
+# can create a histogram of year, month, day of each record to find inconsistencies
+hist(Geranium_data$year, breaks = 50)
+hist(Geranium_data$month, breaks = 12)
+hist(Geranium_data$day, breaks = 31) # substantially more records on the 1st or 31st of a given month
+
+# can also check where the values fall using 'table' function
+# for example:
+table(Geranium_data$year)
+
+##### Clean using CoordinateCleaner #####
+
 # convert country code from ISO2c to ISO3c (so coordinatecleaner can use it)
 Geranium_data$countryCode <-  countrycode(Geranium_data$countryCode, 
                                           origin =  'iso2c', 
                                           destination = 'iso3c') # is this necessary?
+
+# warning message shows unidentified country code XK - remove this record
+Geranium_data <- filter(countryCode != "XK")
 
 # to discover all flagged records:
 # flag problems OR identify and remove flagged records at the same time *below*
@@ -76,7 +100,7 @@ flags <- clean_coordinates(x = Geranium_data,
 # to avoid specifying it in each function:
 names(Geranium_data)[2:3] <- c("decimallongitude", "decimallatitude")
 
-clean <- Geranium_data%>%
+Geranium_data_clean <- Geranium_data%>%
   cc_val()%>% # invalid lat/lon coordinates
   cc_equ()%>% # records with identical lat/lon
   cc_cap()%>% # coordinates in vicinity of country capitals
@@ -89,8 +113,6 @@ clean <- Geranium_data%>%
   ## cc_outl()%>% # coordinates that are geographic outliers in species distribution *probably don't use this one!
   cc_dupl() # duplicate records
 
-# rename cleaned dataset
-Geranium_data_clean <- clean
 
 ##### MAP to visualize cleaning so far #####
 
@@ -105,3 +127,11 @@ ggplot()+ coord_fixed()+ wm +
 # coordinate uncertainty <1000m - to match spatial resolution of 1km or less
 Geranium_data_clean <- coord_uncertain(Geranium_data_clean, coorduncertainityLimit = 1000)
 nrow(Geranium_data_clean) # how many records are left
+
+##### Split records into training and testing #####
+
+Geranium_data_train <- Geranium_data_clean%>%
+  filter(between(year, 1970, 2000)) # leaves 2181 records
+
+Geranium_data_test <- Geranium_data_clean%>%
+  filter(between(year, 2001, 2020)) # leaves 4019 records
