@@ -128,6 +128,10 @@ ggplot()+ coord_fixed()+ wm +
 Geranium_data_clean <- coord_uncertain(Geranium_data_clean, coorduncertainityLimit = 1000)
 nrow(Geranium_data_clean) # how many records are left
 
+# check if there are an 'zero' individual counts through the 'table' function
+table(Geranium_data_clean$individualCount) # remove zeros (if applicable) but NAs are ok
+
+
 ##### Split records into training and testing #####
 
 Geranium_data_train <- Geranium_data_clean%>%
@@ -137,14 +141,18 @@ Geranium_data_test <- Geranium_data_clean%>%
   filter(between(year, 2001, 2020)) # leaves 4019 records
 
 # can check on map!
+# training data:
 wm <- borders("world", colour="gray50", fill="gray50")
 ggplot()+ coord_fixed()+ wm +
   geom_point(data = Geranium_data_train, aes(x = decimallongitude, y = decimallatitude),
              colour = "yellow", size = 0.5)+
   theme_bw()
 
+# testing data:
 wm <- borders("world", colour="gray50", fill="gray50")
 ggplot()+ coord_fixed()+ wm +
   geom_point(data = Geranium_data_test, aes(x = decimallongitude, y = decimallatitude),
              colour = "orange", size = 0.5)+
   theme_bw()
+
+# write to a csv file to save dataset
