@@ -155,4 +155,13 @@ ggplot()+ coord_fixed()+ wm +
              colour = "orange", size = 0.5)+
   theme_bw()
 
-# write to a csv file to save dataset
+# write to a csv file to save dataset (and xlsx file?)
+write.csv(Geranium_data_clean, "Geranium_data_clean.csv")
+write.csv(Geranium_data_train, "Geranium_data_train.csv")
+write.csv(Geranium_data_test, "Geranium_data_test.csv")
+
+install.packages("xlsx")
+library(xlsx)
+write.xlsx(Geranium_data_clean, file = "Geranium_data_clean.xlsx")
+write.xlsx(Geranium_data_train, file = "Geranium_data_train.xlsx")
+write.xlsx(Geranium_data_test, file = "Geranium_data_test.xlsx")
