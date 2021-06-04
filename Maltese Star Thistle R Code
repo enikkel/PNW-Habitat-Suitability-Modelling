@@ -1,263 +1,148 @@
-# install packages
-> install.packages("devtools")
-> install.packages("CoordinateCleaner")
-> install.packages("countrycode")
-> install.packages("rnaturalearthdata")
+#### GBIF maltese star thistle filtering ####
+
+# install necessary packages
+install.packages("devtools")
+install.packages("CoordinateCleaner")
+install.packages("countrycode")
+install.packages("rnaturalearthdata")
 
 # load packages 
-> library(rgbif)
-> library(scrubr)
-Error in library(scrubr) : there is no package called ‘scrubr’ 
-# had to install at line 251
-> library(maps)
-Error in library(maps) : there is no package called ‘maps’ 
-# had to install at line 153
-> library(dplyr)
-> library(sp)
-> library(raster)
-> library(maptools)
-> library(rgdal)
-> library(dismo)
-> library(countrycode)
-> library(CoordinateCleaner)
-> library(ggplot2)
-> library(devtools)
+library(rgbif)
+library(scrubr)
+library(maps)
+library(dplyr)
+library(sp)
+library(raster)
+library(maptools)
+library(rgdal)
+library(dismo)
+library(countrycode)
+library(CoordinateCleaner)
+library(ggplot2)
+library(devtools)
 
 ##### download data from GBIF #####
-> library(readxl)
-> maltese_star <- read_excel("C:/Users/Delia Anderson/Downloads/maltese_star/maltese_star.xlsx")
-There were 50 or more warnings (use warnings() to see the first 50) 
-> View(maltese_star)
-> warnings()
-Warning messages:
-1: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-2: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-3: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-4: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-5: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-6: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-7: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-8: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-9: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-10: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-11: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-12: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-13: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1495 / R1495C25: got '1.0E-5'
-14: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1496 / R1496C25: got '1.0E-5'
-15: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1497 / R1497C25: got '1.0E-5'
-16: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1498 / R1498C25: got '1.0E-5'
-17: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1500 / R1500C25: got '1.0E-5'
-18: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1501 / R1501C25: got '1.0E-5'
-19: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1502 / R1502C25: got '1.0E-5'
-20: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1503 / R1503C25: got '1.0E-5'
-21: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1504 / R1504C25: got '1.0E-5'
-22: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  Expecting logical in Y1505 / R1505C25: got '1.0E-5'
-23: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-24: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-25: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-26: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-27: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-28: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-29: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-30: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-31: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-32: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-33: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-34: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-35: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-36: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-37: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-38: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-39: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-40: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-41: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-42: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-43: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-44: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-45: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-46: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-47: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-48: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-49: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-50: In read_fun(path = enc2native(normalizePath(path)), sheet_i = sheet,  ... :
-  NA inserted for impossible 1900-02-29 datetime
-> myspecies <- c("Centaurea melitensis")
-> maltese_star <- occ_data(scientificName = myspecies, 
-+                                 hasCoordinate = TRUE, 
-+                                 hasGeospatialIssue = FALSE, 
-+                                 limit = 20912)
-> centaurea_data <- maltese_star$data[ , c("species", "decimalLongitude", "decimalLatitude", 
-+                                                "issues", "countryCode", "individualCount", 
-+                                                "occurrenceStatus", "coordinateUncertaintyInMeters", 
-+                                                "institutionCode", "gbifID", "references", "basisOfRecord", 
-+                                                "year", "month", "day", "eventDate", "geodeticDatum", 
-+                                                "datasetName")]
-> wm <- borders("world", colour="gray50", fill="gray50")
-Error:   Package `maps` required for `map_data`.
-  Please install and try again.
-Run `rlang::last_error()` to see where the error occurred.
-> ggplot()+ coord_fixed()+ wm +
-+     geom_point(data = centaurea_data, aes(x = decimalLongitude, y = decimalLatitude),
-+                colour = "darkred", size = 0.5)+
-+     theme_bw()
-Error: object 'wm' not found
-> install.packages("maps")
-> wm <- borders("world", colour="gray50", fill="gray50")
-> ggplot()+ coord_fixed()+ wm +
-+     geom_point(data = centaurea_data, aes(x = decimalLongitude, y = decimalLatitude),
-+                colour = "darkred", size = 0.5)+
-+     theme_bw()
+# "simple" download
+# import Text/CSV into excel workbook
+# UTC-8, tab
+# save as .xslx
+
+myspecies <- c("Centaurea melitensis L.")
+maltese_star <- occ_data(scientificName = myspecies, 
+                                hasCoordinate = TRUE, 
+                                hasGeospatialIssue = FALSE, 
+                                limit = 45000) # limit based on no. of occurences
+
+# to view
+View(maltese_star)
+
+# keep the columns that matter for mapping and cleaning the occurrence data:
+C_melitensis <- maltese_star$data[ , c("species", "decimalLongitude", "decimalLatitude", 
+                                       "issues", "countryCode", "individualCount", 
+                                       "occurrenceStatus", "coordinateUncertaintyInMeters", 
+                                       "institutionCode", "gbifID", "references", "basisOfRecord", 
+                                       "year", "month", "day", "eventDate", "geodeticDatum", 
+                                       "datasetName")]
+
+##### Create/view map of raw data points #####
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = C_melitensis, aes(x = decimalLongitude, y = decimalLatitude),
+             colour = "darkred", size = 0.5)+
+  theme_bw()
+
+##### Clean records #####
 
 # remove records without coordinates (should not have been included in download but just in case)
-> centaurea_data <- centaurea_data%>%
-+     filter(!is.na(decimalLongitude))%>%
-+     filter(!is.na(decimalLatitude))
-> centaurea_data$countryCode <-  countrycode(centaurea_data$countryCode, 
-+                                           origin =  'iso2c', 
-+                                           destination = 'iso3c')
-> centaurea_data <- data.frame(centaurea_data)
-> flags <- clean_coordinates(x = centaurea_data, 
-+                            lon = "decimalLongitude", 
-+                            lat = "decimalLatitude",
-+                            countries = "countryCode",
-+                            species = "species",
-+                            tests = c("capitals", "centroids", "equal","gbif", "institutions",
-+                                      "zeros", "countries")) # most test are on by default
-Testing coordinate validity
-Flagged 0 records.
-Testing equal lat/lon
-Flagged 2 records.
-Testing zero coordinates
-Flagged 9 records.
-Testing country capitals
-Flagged 34 records.
-Testing country centroids
-Flagged 8 records.
-Testing country identity
-Flagged 885 records.
-Testing GBIF headquarters, flagging records around Copenhagen
-Flagged 0 records.
-Testing biodiversity institutions
-Flagged 6 records.
-Flagged 937 of 19582 records, EQ = 0.05.
-Warning message:
-In wkt(obj) : CRS object has no comment
-> 
-> names(centaurea_data)[2:3] <- c("decimallongitude", "decimallatitude")
-> 
-> clean <- centaurea_data%>%
-+     cc_val()%>% # invalid lat/lon coordinates
-+     cc_equ()%>% # records with identical lat/lon
-+     cc_cap()%>% # coordinates in vicinity of country capitals
-+     cc_cen()%>% # coordinates in vicinity of country or probince centroids
-+     cc_coun(iso3 = "countryCode")%>% #coordinates outside reported country
-+     cc_gbif()%>% # coordinates assigned to GBIF headquarters
-+     cc_inst()%>% # coordinates in the vicinity of biodiversity institutions (botanical gardens, universities, museums)
-+     cc_sea()%>% # identifies non-terrestrial coordinates **
-+     cc_zero()%>% # coordinates that are zero 
-+     ## cc_outl()%>% # coordinates that are geographic outliers in species distribution *probably don't use this one! --> used for test, will repeat without
-+     cc_dupl() # duplicate records
-Testing duplicates
-Testing zero coordinates
-Testing sea coordinates
-Testing biodiversity institutions
-Testing GBIF headquarters, flagging records around Copenhagen
-Testing country centroids
-Testing country capitals
-Testing equal lat/lon
-Testing coordinate validity
-Removed 0 records.
-Removed 2 records.
-Removed 34 records.
-Removed 6 records.
-Testing country identity
-Removed 882 records.
-Removed 0 records.
-Removed 4 records.
-trying URL 'http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/110m/physical/ne_110m_land.zip'
-Content type 'application/zip' length 69700 bytes (68 KB)
-downloaded 68 KB
+# remove rows with N/A 
+C_melitensis <- C_melitensis%>%
+  filter(!is.na(decimalLongitude))%>%
+  filter(!is.na(decimalLatitude))%>%
+  filter(!is.na(countryCode))%>%
+  filter(!is.na(occurrenceStatus))%>%
+  filter(!is.na(coordinateUncertaintyInMeters))%>%
+  filter(!is.na(institutionCode))%>%
+  filter(!is.na(geodeticDatum))%>%
+  filter(occurrenceStatus != "ABSENT") # removes all 'absent' records
 
-OGR data source with driver: ESRI Shapefile 
-Source: "C:\Users\Delia Anderson\AppData\Local\Temp\RtmpUBFf83", layer: "ne_110m_land"
-with 127 features
-It has 3 fields
-Removed 775 records.
-Removed 9 records.
-Removed 4335 records.
-Warning message:
-In wkt(obj) : CRS object has no comment
-> 
-> Centaurea_data_clean <- clean
-> wm <- borders("world", colour="gray50", fill="gray50")
-> ggplot()+ coord_fixed()+ wm +
-+     geom_point(data = Centaurea_data_clean, aes(x = decimallongitude, y = decimallatitude),
-+                colour = "darkred", size = 0.5)+
-+     theme_bw()
-> Centaurea_data_clean <- coord_uncertain(Centaurea_data_clean, coorduncertainityLimit = 1000)
-Error in coord_uncertain(Centaurea_data_clean, coorduncertainityLimit = 1000) : 
-  could not find function "coord_uncertain"
-> nrow(Centaurea_data_clean)
-[1] 13535
-> install.packages("scrubr")
-> Geranium_data_clean <- coord_uncertain(Geranium_data_clean, coorduncertainityLimit = 1000)
-Error in coord_uncertain(Geranium_data_clean, coorduncertainityLimit = 1000) : 
-  could not find function "coord_uncertain"
-> nrow(Geranium_data_clean)
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'x' in selecting a method for function 'nrow': object 'Geranium_data_clean' not found
-> Centaurea_data_clean <- coord_uncertain(Centaurea_data_clean, coorduncertainityLimit = 1000)
-Error in coord_uncertain(Centaurea_data_clean, coorduncertainityLimit = 1000) : 
-  could not find function "coord_uncertain"
-> nrow(Centaurea_data_clean)
-[1] 13535
-# despite receiving the warning before installing scrubr package, still ended up with the same result = 13535
+# remove records pre-1970 and 2021
+C_melitensis <- C_melitensis%>%
+  filter(between(year, 1970, 2020))
+
+# can create a histogram of year, month, day of each record to find inconsistencies
+hist(C_melitensis$year, breaks = 50)
+hist(C_melitensis$month, breaks = 12)
+hist(C_melitensis$day, breaks = 31) # substantially more records on the 1st or 31st of a given month
+
+# can also check where the values fall using 'table' function
+table(C_melitensis$year)
+
+##### Clean using CoordinateCleaner #####
+
+# convert country code from ISO2c to ISO3c (so coordinatecleaner can use it)
+C_melitensis$countryCode <- countrycode(C_melitensis$countryCode, 
+                                        origin =  'iso2c', 
+                                        destination = 'iso3c')
+
+# did not show warning message for unidentified country code
+
+# examine flagged records
+C_melitensis <- data.frame(C_melitensis)
+flags <- clean_coordinates(x = C_melitensis,  
+                           lon = "decimalLongitude", 
+                           lat = "decimalLatitude",
+                           countries = "countryCode",
+                           species = "species",
+                           tests = c("capitals", "centroids", "equal","gbif", "institutions",
+                                     "zeros", "countries")) # most test are on by default
+
+# identify and remove flag records at the same time 
+# to avoid specifying it in each function:
+names(C_melitensis)[2:3] <- c("decimallongitude", "decimallatitude")
+
+C_melitensis_clean <- C_melitensis%>%
+  cc_val()%>% # invalid lat/lon coordinates
+  cc_equ()%>% # records with identical lat/lon
+  cc_cap()%>% # coordinates in vicinity of country capitals
+  cc_cen()%>% # coordinates in vicinity of country or probince centroids
+  cc_coun(iso3 = "countryCode")%>% #coordinates outside reported country
+  cc_gbif()%>% # coordinates assigned to GBIF headquarters
+  cc_inst()%>% # coordinates in the vicinity of biodiversity institutions (botanical gardens, universities, museums)
+  cc_sea()%>% # identifies non-terrestrial coordinates **
+  cc_zero()%>% # coordinates that are zero 
+  cc_dupl() # duplicate records
+
+##### MAP to visualize cleaning so far #####
+
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = C_melitensis_clean, aes(x = decimallongitude, y = decimallatitude),
+             colour = "darkred", size = 0.5)+
+  theme_bw()
+
+##### Continue Cleaning #####
+
+# coordinate uncertainty <1000m - to match spatial resolution of 1km or less
+C_melitensis_clean <- coord_uncertain(C_melitensis_clean, coorduncertainityLimit = 1000)
+nrow(C_melitensis_clean) # 5567 records left from original 20912
+
+##### Split records into training and testing #####
+
+C_melitensis_train <- C_melitensis_clean%>%
+  filter(between(year, 1970, 2000)) # leaves 1142 records
+
+C_melitensis_test <- C_melitensis_clean%>%
+  filter(between(year, 2001, 2020)) # leaves 4425 records
+
+# check on map
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = C_melitensis_train, aes(x = decimallongitude, y = decimallatitude),
+             colour = "yellow", size = 0.5)+
+  theme_bw()
+
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = C_melitensis_test, aes(x = decimallongitude, y = decimallatitude),
+             colour = "orange", size = 0.5)+
+  theme_bw()
