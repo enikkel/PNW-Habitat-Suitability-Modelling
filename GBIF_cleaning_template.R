@@ -1,4 +1,4 @@
-######## GBIF filtering template ########
+######## GBIF filtering template ######## USING OCC_DATA
 # with shiny geranium as an example
 
 # install necessary packages
@@ -154,6 +154,10 @@ ggplot()+ coord_fixed()+ wm +
   geom_point(data = Geranium_data_test, aes(x = decimallongitude, y = decimallatitude),
              colour = "orange", size = 0.5)+
   theme_bw()
+
+# check problematic issues (from issues column)
+Geranium_data_clean %>%
+  occ_issues(bri) ### CANNOT FILTER FROM HERE *see other script using occ_search
 
 # write to a csv file to save dataset (and xlsx file?)
 write.csv(Geranium_data_clean, "Geranium_data_clean.csv")
