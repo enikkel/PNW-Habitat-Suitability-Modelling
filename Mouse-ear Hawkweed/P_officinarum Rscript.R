@@ -66,7 +66,7 @@ hawkweed_pt1 <- hawkweed_pt1_issues_clean$data[ , c("species", "decimalLongitude
                                                       "occurrenceStatus", "coordinateUncertaintyInMeters", 
                                                       "institutionCode", "gbifID", "references", "basisOfRecord", 
                                                       "year", "month", "day", "eventDate", "geodeticDatum", 
-                                                      "datasetName")] 
+                                                      "datasetName", "catalogNumber")] 
 
 hawkweed_pt2 <- hawkweed_pt2_issues_clean$data[ , c("species", "decimalLongitude", "decimalLatitude", 
                                                       "issues", "countryCode", "individualCount", 
