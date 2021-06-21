@@ -49,7 +49,7 @@ umbellatus_data <- umbellatus_issues_clean$data[ , c("species", "decimalLongitud
                                                       "occurrenceStatus", "coordinateUncertaintyInMeters", 
                                                       "institutionCode", "gbifID", "references", "basisOfRecord", 
                                                       "year", "month", "day", "eventDate", "geodeticDatum", 
-                                                      "datasetName")]
+                                                      "datasetName", "catalogNumber")]
 
 ##### Create/view map of raw data points #####
 
