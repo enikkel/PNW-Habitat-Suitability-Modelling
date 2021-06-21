@@ -51,7 +51,7 @@ Geranium_data <- shiny_geranium_issuesclean$data[ , c("species", "decimalLongitu
                                                "occurrenceStatus", "coordinateUncertaintyInMeters", 
                                                "institutionCode", "gbifID", "references", "basisOfRecord", 
                                                "year", "month", "day", "eventDate", "geodeticDatum", 
-                                               "datasetName")] 
+                                               "datasetName", "catalogNumber")]  #catalogNumber for easy occurence record retrieval via GBIF online
 
 ##### Create/view map of raw data points #####
 
