@@ -50,7 +50,7 @@ hyacinth_data <- hyacinth_issues_clean$data[ , c("species", "decimalLongitude", 
                                                  "occurrenceStatus", "coordinateUncertaintyInMeters", 
                                                  "institutionCode", "gbifID", "references", "basisOfRecord", 
                                                  "year", "month", "day", "eventDate", "geodeticDatum", 
-                                                 "datasetName", "scientificName")]
+                                                 "datasetName", "scientificName", "catalogNumber")]
 
 #check for synonyms
 sort(unique(hyacinth_data$scientificName))
