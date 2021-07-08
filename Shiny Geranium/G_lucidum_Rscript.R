@@ -141,14 +141,14 @@ nrow(Geranium_data_clean) # how many records are left
 # check if there are an 'zero' individual counts through the 'table' function
 table(Geranium_data_clean$individualCount) # remove zeros (if applicable) but NAs are ok
 
-
 ##### Split records into training and testing #####
+# merge cleaned EDDmaps occurences with GBIF occurences and name "Geranium_data_cleaned"
 
 Geranium_data_train <- Geranium_data_clean%>%
-  filter(between(year, 1970, 2000)) # leaves 2181 records *now 2173
+  filter(between(year, 1970, 2000)) # leaves 2181 records *now 1575
 
 Geranium_data_test <- Geranium_data_clean%>%
-  filter(between(year, 2001, 2020)) # leaves 4019 records *now 4009
+  filter(between(year, 2001, 2020)) # leaves 4019 records *now 3195
 
 # can check on map!
 # training data:
