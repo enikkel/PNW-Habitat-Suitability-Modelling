@@ -35,7 +35,7 @@ library(tidyverse)
 
 ##### Download environmental variables ##### -----
 
-# Download 30 second res worldclim V 2.1
+# Download 30 second res worldclim V 2.1 (https://www.worldclim.org/data/worldclim21.html)
 P_url <- "https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_30s_bio.zip"
 download.file(P_url, destfile="wc2.1_30s_bio.zip")
 unzip("wc2.1_30s_bio.zip")
@@ -113,7 +113,7 @@ SG.env.var.no.coord <- subset(SG.env.var, select = -c(Longitude, Latitude))
 SG.landcover <- read.csv("Geranium_landcover.csv")
 SG.soil <- read.csv("Geranium_soilconditions.csv") # not going to use for now
 
-# create raster layers of landcover data for later
+# create raster layers of landcover data for later (http://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/harmonized-world-soil-database-v12/en/)
 cult <- raster("CULT_2000.asc")
 cultIR <- raster("CULTIR_2000.asc")
 cultRF <- raster("CULTRF_2000.asc")
@@ -180,7 +180,7 @@ vif
 
 ##### ADD Human Influence Index to variables ##### -----
 # *created .csv file with values and read in that way instead*
-
+# (https://sedac.ciesin.columbia.edu/data/set/wildareas-v2-human-influence-index-geographic/data-download)
 var1 <- raster("dblbnd.adf")
 var2 <- raster("hdr.adf")
 var3 <- raster("prj.adf")
