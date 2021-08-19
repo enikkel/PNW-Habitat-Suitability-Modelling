@@ -11,7 +11,7 @@ install.packages("usdm")
 install.packages("corrplot")
 install.packages(c("FactoMineR", "factoextra"))
 install.packages("spatialEco")
-install.packages("tidyverse") # do not load until after extracting values or else it blocks raster 'extract' funtion
+install.packages("tidyverse") 
 
 library(rgdal)
 library(raster)
