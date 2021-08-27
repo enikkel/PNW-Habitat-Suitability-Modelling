@@ -18,9 +18,12 @@ library(countrycode)
 library(CoordinateCleaner)
 library(ggplot2)
 library(devtools)
+library(spThin)
+library(sf)
+library(data.table)
+library(tidyverse)
 
-##### download data from GBIF #####
-
+## download data from GBIF
 myspecies <- c("Geranium lucidum")
 shiny_geranium_gbifsearch <- occ_search(scientificName = myspecies, 
                                         hasCoordinate = TRUE, 
