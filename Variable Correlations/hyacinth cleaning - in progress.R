@@ -324,6 +324,16 @@ points(hyacinth.NA$Longitude, hyacinth.NA$Latitude)
 
 
 
+# adding land raster 
+NA.land <- raster("NA_NALCMS_2015_v2_land_cover_30m.tif")
+land.repro <- projectRaster(NA.land, climateNA)
+plot(land.repro)
+
+hyacinth.coord <- hyacinth.NA[ ,c("Longitude", "Latitude")]
+land.extract <- as.data.frame(raster::extract(NA.land, hyacinth.coord))
+
+
+
 
 
 
