@@ -314,4 +314,3 @@ proj_ensemble_pnw_ws <- crop(proj1_ensemble_ws, ext_pnw)
 proj_ensemble_mv_ws <- crop(proj1_ensemble_ws, ext_mv)
 plot(proj_ensemble_pnw_ws)
 plot(proj_ensemble_mv_ws)
-
