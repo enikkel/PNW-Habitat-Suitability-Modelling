@@ -33,12 +33,13 @@ library(JGR)
 
 ############### download species records ##################
 # download .csv files of species records *already cleaned*
-shiny.geranium.records <- read.csv("NA_geranium_records.csv")
+shiny.geranium.records <- read.csv("NA_geranium_records.csv") # Geranium_NA_clip.csv in North American Occurrences folder
 geranium.coords <- shiny.geranium.records[ , c("decimallon", "decimallat")]
 
 
 ############# download environmental variables ############## 
-# download ClimateNA vclimate normals variables
+# download ClimateNA climate normals variables
+# https://adaptwest.databasin.org/pages/adaptwest-climatena/
 MAT <- raster("Normal_1981_2010_MAT.tif") # mean annual temperature (C)
 MWMT <- raster("Normal_1981_2010_MWMT.tif") # mean temperature of the warmest month
 MCMT <- raster("Normal_1981_2010_MCMT.tif") # mean temperature of the coldest month
@@ -73,6 +74,8 @@ PPT_sp <- raster("Normal_1981_2010_PPT_sp.tif") # spring precipitation
 PPT_sm <- raster("Normal_1981_2010_PPT_sm.tif") # summer precipitation
 PPT_at <- raster("Normal_1981_2010_PPT_at.tif") # autumn precipitation
 
+# download world soils land cover variables
+# http://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/harmonized-world-soil-database-v12/en/
 # create rasters of world soils variables
 NVG <- raster("NVG_2000")
 URB <- raster("URB_2000")
@@ -83,11 +86,12 @@ CULTRF <- raster("CULT_2000")
 CULT <- raster("CULTRF_2000")
 WATER <- raster("WAT_2000")
 
-# download and unzip Human Influence Index v2: Last of the Wild (World)
+# download and unzip Human Influence Index v2: Last of the Wild (World) - North America 
+# https://sedac.ciesin.columbia.edu/data/set/wildareas-v2-human-influence-index-geographic/data-download
 # create raster of Human Influence Index using local file path
 HII <- raster("w001001.adf")
 
-ext <- extent(-180, -40, 10, 90)
+ext <- extent(-180, -40, 10, 90) # North America
 
 NVG.NA <- crop(NVG, ext)
 URB.NA <- crop(URB, ext)
@@ -105,6 +109,7 @@ bio1 <- raster("wc2.1_30s_bio_1.tif")
 bio1 <- crop(bio1, ext)
 HII_gcs <- projectRaster(HII, bio1, method = 'ngb')
 
+# error stating input crs value is 'NA', therefore add crs (already in WGS84, just not listed)
 crs(NVG.NA) <- "+proj=longlat +datum=WGS84 +no_defs"
 crs(URB.NA) <- "+proj=longlat +datum=WGS84 +no_defs"
 crs(FOR.NA) <- "+proj=longlat +datum=WGS84 +no_defs"
@@ -156,6 +161,7 @@ PPT_sm.NA <- projectRaster(PPT_sm, HII_gcs, method = 'bilinear')
 PPT_at.NA <- projectRaster(PPT_at, HII_gcs, method = 'bilinear')
 
 # needs same projection, ext, resolution, crs, etc
+# create rasterstack of all variables
 all.variables <- stack(MAT.NA, MWMT.NA, MCMT.NA, TD.NA, MAP.NA, MSP.NA, AHM.NA, 
                        SHM.NA, DD_0.NA, DD5.NA, DD_18.NA, DD18.NA, NFFD.NA, 
                        FFP.NA, bFFP.NA, eFFP.NA, PAS.NA, EMT.NA, EXT.NA, Eref.NA, 
@@ -193,9 +199,7 @@ abline(h = 0.3, col = "red", lty = 5)
 vif <- vifstep(geranium.variable.values, th = 10) # threshold value of 10 
 vif
 
-####################### Future Climate Data #######################
-# upload future climate, we'll start with the GCM: MRI 4.5 2050s
-# TD_MRI_4.5_50s <- raster("MRI-ESM2-0_ssp245_2041_TD.tif")
+# use these results to choose which variables to use in the model 
 
 
 #################### BIOMOD2 #####################################
@@ -241,6 +245,7 @@ geranium_model_out_ws <-
     modeling.id = "worldsoils"
   )
 
+## the MAXENT algorithm does not work ## 
 
 geranium_model_out_ws # to view
 
@@ -274,6 +279,8 @@ geranium_em_ws <- BIOMOD_EnsembleModeling(
 
 geranium_em_ws
 get_evaluations(geranium_em_ws)
+
+# to reassess later:
 # presence-only evaluation methods? Boyce using BIOMOD_presenceonly
 ### Ger.4.pres.only.eval <- BIOMOD_presenceonly(Ger.4.ModelOut, Ger.4.EM) #need to set ensemble modeling to
 # 'PA_dataset+repet' for this to work
@@ -305,8 +312,10 @@ geranium_ef_ws <- BIOMOD_EnsembleForecasting(EM.output = geranium_em_ws,
                                           projection.output = geranium_current_proj_ws)
 plot(geranium_ef_ws)
 
-ext_pnw <- extent(-129, -120, 43, 51)
-ext_mv <- extent(-123, -122, 49, 49.5)
+################ Plotting the model outputs and cropping to PNW and MV ###################
+
+ext_pnw <- extent(-129, -120, 43, 51) # pacific northwest coordinates
+ext_mv <- extent(-123, -122, 49, 49.5) # metro vancouver coordinates
 
 proj1_ensemble_ws <- raster::stack("Geranium.lucidum_EMmeanByTSS_mergedAlgo_mergedRun_mergedData.grd")
 plot(proj1_ensemble_ws)
@@ -314,3 +323,7 @@ proj_ensemble_pnw_ws <- crop(proj1_ensemble_ws, ext_pnw)
 proj_ensemble_mv_ws <- crop(proj1_ensemble_ws, ext_mv)
 plot(proj_ensemble_pnw_ws)
 plot(proj_ensemble_mv_ws)
+
+####################### Future Climate Data #######################
+# upload future climate, we'll start with the GCM: MRI 4.5 2050s
+# TD_MRI_4.5_50s <- raster("MRI-ESM2-0_ssp245_2041_TD.tif")
