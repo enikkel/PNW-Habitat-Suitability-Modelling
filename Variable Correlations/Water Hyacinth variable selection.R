@@ -60,12 +60,8 @@ bio19 <- raster("wc2.1_30s_bio_19.tif")
 
 # create rasters of world soils variables
 NVG = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\barren_sparsely_vegetated_land.asc")
-URB = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\built_up_land.asc")
 FOR = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\forest_land.asc")
 GRS = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\grass_scrub_woodland.asc")
-CULTIR = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\irrigated_cultivated_land.asc")
-CULTRF = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\rain_fed_cultivated_land.asc")
-CULT = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\total_cultivated_land.asc")
 WATER = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\water_bodies.asc")
 
 # create raster of Human Infleunce Index
@@ -74,12 +70,8 @@ HII <- raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\w0010
 # reproject world soils and HII
 # world soils variable crs is set to NA, set to WGS84 like bio variables
 projection(NVG) <- projection(bio1)
-projection(URB) <- projection(bio1)
 projection(FOR) <- projection(bio1)
 projection(GRS) <- projection(bio1)
-projection(CULTIR) <- projection(bio1)
-projection(CULTRF) <- projection(bio1)
-projection(CULT) <- projection(bio1)
 projection(WATER) <- projection(bio1)
 projection(HII) <- projection(bio1)
 
@@ -87,36 +79,30 @@ projection(HII) <- projection(bio1)
 bioclim.var <- stack(bio1, bio2, bio3, bio4, bio5, bio6, bio7, bio8, 
                      bio9, bio10, bio11, bio12, bio13, bio14, bio15, 
                      bio16, bio17, bio18, bio19)
-land.use <- stack(NVG, URB, FOR, GRS, CULTIR, CULTRF, CULT, WATER)
+land.use <- stack(NVG, FOR, GRS, WATER)
 
 # crop rasters
-ext <- extent(-130, 160, -30, 65)
+ext <- extent(-180, -40, 10, 90)
 bioclim.crop <- crop(bioclim.var, ext)
 landuse.crop <- crop(land.use, ext)
 HII.crop <- crop(HII, ext)
 
-
-##### Training Data ###### -----
-# load training data csv into R
-# extract predictor values at species record points *remember this is only the training data
+# extract predictor values at species record points
 data(wrld_simpl)
-water.hyacinth.train <- hyacinth_data_train
-WH.lat.lon.train <- water.hyacinth.train[ , c("decimallon", "decimallat")]
-WH.occ.train <- water.hyacinth.train[ , c("decimallon", "decimallat")] # for later
+WH.lat.lon <- hyacinth.NA[ , c("Longitude", "Latitude")]
+WH.occ<- hyacinth.NA[ , c("Longitude", "Latitude")] # for later
 
 # extract bioclim variables for each species record, creating a dataframe
-bioclim.extract.train <- raster::extract(bioclim.crop, WH.lat.lon.train, method = 'simple')
-landuse.extract.train <- raster::extract(landuse.crop, WH.lat.lon.train, method = 'simple')
-HII.extract.train <- raster::extract(HII.crop, WH.lat.lon.train, method = 'simple')
+bioclim.extract <- raster::extract(bioclim.crop, WH.lat.lon, method = 'simple')
+landuse.extract <- raster::extract(landuse.crop, WH.lat.lon, method = 'simple')
+HII.extract <- raster::extract(HII.crop, WH.lat.lon, method = 'simple')
 
 # combine dataframes (coordinates + bioclim values)extra
-WH.variables.train <- cbind(WH.lat.lon.train, bioclim.extract.train, landuse.extract.train, HII.extract.train)
-
-plot(WH.variables.train)
+WH.variables <- cbind(WH.lat.lon, bioclim.extract, landuse.extract, HII.extract, hyacinth.landuse)
 
 library(tidyverse)
 # remove NA values 
-WH.variables.train <- WH.variables.train%>%
+WH.variables <- WH.variables%>%
   filter(!is.na(wc2.1_30s_bio_1))%>%
   filter(!is.na(wc2.1_30s_bio_2))%>%
   filter(!is.na(wc2.1_30s_bio_3))%>%
@@ -137,106 +123,58 @@ WH.variables.train <- WH.variables.train%>%
   filter(!is.na(wc2.1_30s_bio_18))%>%
   filter(!is.na(wc2.1_30s_bio_19))%>%
   filter(!is.na(barren_sparsely_vegetated_land))%>%
-  filter(!is.na(built_up_land))%>%
   filter(!is.na(forest_land))%>%
   filter(!is.na(grass_scrub_woodland))%>%
-  filter(!is.na(irrigated_cultivated_land))%>%
-  filter(!is.na(rain_fed_cultivated_land))%>%
-  filter(!is.na(total_cultivated_land))%>%
   filter(!is.na(water_bodies))%>%
-  filter(!is.na(HII.extract.train))
+  filter(!is.na(HII.extract))
 
+# split training/testing 70:30
+set.seed(123) # Set Seed so that same sample can be reproduced in future
+# Now Selecting 70% of data as sample from total 'n' rows of the data  
+sample <- sample.int(n = nrow(WH.variables), size = floor(.70*nrow(WH.variables)), replace = F)
+WH.train <- WH.variables[sample, ]
+WH.test  <- WH.variables[-sample, ]
+
+## deal with training data first
 # check
-summary(WH.variables.train)
-# SG.occ.train has 1575 obs but SG.env.vars now has 1550 (25 NAs removed) so we need to bring SG.occ.train down 
-# to 1550 as well (25 obs don't have explanatory variables)
+summary(WH.train)
 
 # create subset without longitude and latitude for correlation
-WH.cor.data.train <- subset(WH.variables.train, select = -c(decimallat, decimallon))
+WH.cor.train <- subset(WH.train, select = -c(Longitude, Latitude))
 
 ##### Correlation tests ##### -----
 # Pearson's correlation test
-WH.cor.train <- cor(WH.cor.data.train, method = "pearson", use = "pairwise.complete.obs")
-corrplot(cor(WH.cor.train, method = "pearson"))
+training.cor <- cor(WH.cor.train, method = "pearson", use = "pairwise.complete.obs")
+corrplot(cor(training.cor, method = "pearson"))
 
 #creating different visual
-pearson.dist <- as.dist(1 - WH.cor.train)
+pearson.dist <- as.dist(1 - training.cor)
 pearson.tree <- hclust(pearson.dist, method="complete")
 plot(pearson.tree)
 abline(h = 0.3, col = "red", lty = 5)
 
 # VIF
-vif <- vifstep(WH.cor.data.train, th = 10) # threshold value of 10 
+vif <- vifstep(WH.cor.train, th = 10) # threshold value of 10 
 vif
 
-
-##### Testing Data ##### -----
-# load testing data csv into R
-# extract predictor values at species record points *remember this is only the training data
-water.hyacinth.test <- hyacinth_data_test
-WH.lat.lon.test <- water.hyacinth.test[ , c("decimallon", "decimallat")]
-WH.occ.test <- water.hyacinth.test[ , c("decimallon", "decimallat")] # for later
-
-# extract bioclim variables for each species record, creating a dataframe
-bioclim.extract.test <- raster::extract(bioclim.crop, WH.lat.lon.test, method = 'simple')
-landuse.extract.test <- raster::extract(landuse.crop, WH.lat.lon.test, method = 'simple')
-HII.extract.test <- raster::extract(HII.crop, WH.lat.lon.test, method = 'simple')
-
-# combine dataframes (coordinates + bioclim values)extra
-WH.variables.test <- cbind(WH.lat.lon.test, bioclim.extract.test, landuse.extract.test, HII.extract.test)
-
-plot(WH.variables.test)
-
-# remove NA values 
-WH.variables.test <- WH.variables.test%>%
-  filter(!is.na(wc2.1_30s_bio_1))%>%
-  filter(!is.na(wc2.1_30s_bio_2))%>%
-  filter(!is.na(wc2.1_30s_bio_3))%>%
-  filter(!is.na(wc2.1_30s_bio_4))%>%
-  filter(!is.na(wc2.1_30s_bio_5))%>%
-  filter(!is.na(wc2.1_30s_bio_6))%>%
-  filter(!is.na(wc2.1_30s_bio_7))%>%
-  filter(!is.na(wc2.1_30s_bio_8))%>%
-  filter(!is.na(wc2.1_30s_bio_9))%>%
-  filter(!is.na(wc2.1_30s_bio_10))%>%
-  filter(!is.na(wc2.1_30s_bio_11))%>%
-  filter(!is.na(wc2.1_30s_bio_12))%>%
-  filter(!is.na(wc2.1_30s_bio_13))%>%
-  filter(!is.na(wc2.1_30s_bio_14))%>%
-  filter(!is.na(wc2.1_30s_bio_15))%>%
-  filter(!is.na(wc2.1_30s_bio_16))%>%
-  filter(!is.na(wc2.1_30s_bio_17))%>%
-  filter(!is.na(wc2.1_30s_bio_18))%>%
-  filter(!is.na(wc2.1_30s_bio_19))%>%
-  filter(!is.na(barren_sparsely_vegetated_land))%>%
-  filter(!is.na(built_up_land))%>%
-  filter(!is.na(forest_land))%>%
-  filter(!is.na(grass_scrub_woodland))%>%
-  filter(!is.na(irrigated_cultivated_land))%>%
-  filter(!is.na(rain_fed_cultivated_land))%>%
-  filter(!is.na(total_cultivated_land))%>%
-  filter(!is.na(water_bodies))%>%
-  filter(!is.na(HII.extract.test))
-
+## testing data next
 # check
-summary(WH.variables.test)
-# SG.occ.train has 1575 obs but SG.env.vars now has 1550 (25 NAs removed) so we need to bring SG.occ.train down 
-# to 1550 as well (25 obs don't have explanatory variables)
+summary(WH.test)
 
 # create subset without longitude and latitude for correlation
-WH.cor.data.test <- subset(WH.variables.test, select = -c(decimallat, decimallon))
+WH.cor.test <- subset(WH.test, select = -c(Longitude, Latitude))
 
 ##### Correlation tests ##### -----
 # Pearson's correlation test
-WH.cor.test <- cor(WH.cor.data.test, method = "pearson", use = "pairwise.complete.obs")
-corrplot(cor(WH.cor.test, method = "pearson"))
+testing.cor <- cor(WH.cor.test, method = "pearson", use = "pairwise.complete.obs")
+corrplot(cor(testing.cor, method = "pearson"))
 
 #creating different visual
-pearson.dist <- as.dist(1 - WH.cor.test)
+pearson.dist <- as.dist(1 - testing.cor)
 pearson.tree <- hclust(pearson.dist, method="complete")
 plot(pearson.tree)
 abline(h = 0.3, col = "red", lty = 5)
 
 # VIF
-vif <- vifstep(WH.cor.data.test, th = 10) # threshold value of 10 
+vif <- vifstep(WH.cor.test, th = 10) # threshold value of 10 
 vif

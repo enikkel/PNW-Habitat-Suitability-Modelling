@@ -1,6 +1,3 @@
-### GBIF filtering template
-# with shiny geranium as an example
-
 # install necessary packages
 install.packages("devtools")
 install.packages("CoordinateCleaner")
@@ -28,7 +25,7 @@ library(sf)
 library(data.table)
 library(tidyverse)
 
-## download data from GBIF
+#### Download data from GBIF ####
 species <- "Eichhornia crassipes"
 hyacinth.search <- occ_search(scientificName = species, 
                               hasCoordinate = TRUE, 
@@ -59,7 +56,7 @@ hyacinth.data <- hyacinth.issues.clean$data[ , c("species", "decimalLongitude", 
 # Create/view map of raw data points 
 wm <- borders("world", colour="gray50", fill="gray50")
 ggplot()+ coord_fixed()+ wm +
-  geom_point(data = hyacinth.data, aes(x = decimallongitude, y = decimallatitude),
+  geom_point(data = hyacinth.data, aes(x = decimalLongitude, y = decimalLatitude),
              colour = "darkred", size = 0.5)+
   theme_bw()+
   print(ggtitle("Hyacinth Occurrences GBIF Raw Data"))
@@ -79,7 +76,7 @@ hyacinth.data <- hyacinth.data%>%
 
 # remove records pre-1970 and 2021
 hyacinth.data <- hyacinth.data%>%
-  filter(between(year, 1970, 2020))
+  filter(between(year, 1981, 2020))
 
 ## Clean using CoordinateCleaner
 # convert country code from ISO2c to ISO3c (so coordinatecleaner can use it)
@@ -89,7 +86,10 @@ hyacinth.data$countryCode <-  countrycode(hyacinth.data$countryCode,
 
 # identify and remove flag records at the same time 
 # to avoid specifying it in each function
-names(hyacinth.data)[2:3] <- c("decimallongitude", "decimallatitude")
+names(hyacinth.data)[2:3] <- c("decimalLongitude", "decimalLatitude")
+
+hyacinth.data <- rename(hyacinth.data, 'decimallongitude' = 'decimalLongitude')
+hyacinth.data <- rename(hyacinth.data, 'decimallatitude' = 'decimalLatitude')
 
 hyacinth.data.clean <- hyacinth.data%>%
   cc_val()%>% # invalid lat/lon coordinates
@@ -99,9 +99,7 @@ hyacinth.data.clean <- hyacinth.data%>%
   cc_coun(iso3 = "countryCode")%>% #coordinates outside reported country
   cc_gbif()%>% # coordinates assigned to GBIF headquarters
   cc_inst()%>% # coordinates in the vicinity of biodiversity institutions (botanical gardens, universities, museums)
-  cc_sea()%>% # identifies non-terrestrial coordinates *******************************
   cc_zero()%>% # coordinates that are zero 
-  ## cc_outl()%>% # coordinates that are geographic outliers in species distribution *probably don't use this one!
   cc_dupl() # duplicate records
 
 # coordinate uncertainty <1000m - to match spatial resolution of 1km or less
@@ -119,51 +117,11 @@ ggplot()+ coord_fixed()+ wm +
   theme_bw()+
   print(ggtitle("Cleaned GBIF Hyacinth Occurrences"))
 
-## Split records into training and testing
-hyacinth.data.train <- hyacinth.data.clean%>%
-  filter(between(year, 1970, 2000)) # leaves 42 records
-hyacinth.data.test <- hyacinth.data.clean%>%
-  filter(between(year, 2001, 2020)) # leaves 1945
-
-# map training data
-wm <- borders("world", colour="gray50", fill="gray50")
-ggplot()+ coord_fixed()+ wm +
-  geom_point(data = hyacinth.data.train, aes(x = decimallongitude, y = decimallatitude),
-             colour = "yellow", size = 0.5)+
-  theme_bw()+
-  print(ggtitle("Train Hyacinth Occurrences"))
-
-# map testing data
-wm <- borders("world", colour="gray50", fill="gray50")
-ggplot()+ coord_fixed()+ wm +
-  geom_point(data = hyacinth.data.test, aes(x = decimallongitude, y = decimallatitude),
-             colour = "orange", size = 0.5)+
-  theme_bw()+
-  print(ggtitle("Test Hyacinth Occurrences"))
-
 # write to a csv file to save dataset
 write.csv(hyacinth.data.clean, "hyacinth.data.clean.csv")
-write.csv(hyacinth.data.train, "hyacinth.data.train.csv")
-write.csv(hyacinth.data.test, "hyacinth.data.test.csv")
 
 
-#### Downscaling GBIF ####
-# thin dataset to one occurrence/1km
-hyacinth.thin <- thin(hyacinth.data.clean, lat.col = "decimallatitude", 
-                         long.col = "decimallongitude", spec.col = "species", 
-                         thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
-                         max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
-                         out.base = "hyacinth.thinned") # thin par is in km
-hyacinth.thin <- setDT(hyacinth.thin[[1]])
-
-wm <- borders("world", colour="gray50", fill="gray50")
-ggplot()+ coord_fixed()+ wm +
-  geom_point(data = hyacinth.thin, aes(x = Longitude, y = Latitude),
-             colour = "orange", size = 0.5)+
-  theme_bw()+
-  print(ggtitle("Thinned GBIF Hyacinth Occurrences"))
-
-#### load EDDMaps geopackage by layers ####
+#### Load EDDMaps geopackage by layers ####
 linelayer <- st_read("E:\\SDM 2021\\GIS maps\\QGIS files\\Water Hyacinth\\Water Hyacinth EDDMaps\\observations.gpkg", 
                      layer = "Linelayer",type = 0, promote_to_multi = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)
 pointlayer <- st_read("E:\\SDM 2021\\GIS maps\\QGIS files\\Water Hyacinth\\Water Hyacinth EDDMaps\\observations.gpkg", 
@@ -217,27 +175,40 @@ EDD.points <- subset(EDD.points, select = -c(shape))
 # write CSV to edit outside of R
 write.csv(EDD.points, "EDD.points.csv")
 
-##########################################################################################################################
 
-# Open in excel, create new column labelled 'year and add the year for each occurrence as taken from the 'ObsDate' column 
+#### EDIT IN EXCEL ######################################################################################################
+# Open in excel, create new column labeled 'year and add the year for each occurrence as taken from the 'ObsDate' column 
 # Save as 'EDD.points.yr.csv'
 
-##########################################################################################################################
+# import edited .csv into R
+EDD.points <- read.csv("C:\\Users\\Delia Anderson\\Documents\\EDD.points.csv")
 
-# import edited csv into R
-EDD.points <- read.csv("C:\\Users\\Delia Anderson\\Desktop\\EDD.points.yr.csv")
-
-# filter between 1970 - 2020 and CoordAcc < 1000m
+# filter between 1981 - 2020
 EDD.points <- EDD.points%>%
-  filter(between(Year, 1970, 2020))%>%
-  filter(is.na(CoordAcc) | CoordAcc <=1000)
+  filter(between(year, 1981, 2020))
+
+#### Downscaling occurrences ####
+# thin dataset to one occurrence/1km
+hyacinth.thin <- thin(hyacinth.data.clean, lat.col = "decimallatitude", 
+                      long.col = "decimallongitude", spec.col = "species", 
+                      thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
+                      max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
+                      out.base = "hyacinth.thinned") # thin par is in km
+hyacinth.thin <- setDT(hyacinth.thin[[1]])
+
+wm <- borders("world", colour="gray50", fill="gray50")
+ggplot()+ coord_fixed()+ wm +
+  geom_point(data = hyacinth.thin, aes(x = Longitude, y = Latitude),
+             colour = "orange", size = 0.5)+
+  theme_bw()+
+  print(ggtitle("Thinned GBIF Hyacinth Occurrences"))
 
 # thin EDDMaps layers
-EDD.thin <- thin(as.data.frame(EDD.points), lat.col = "Latitude", 
-                         long.col = "Longitude", spec.col = "SciName", 
-                         thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
-                         max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
-                         out.base = "EDD.thin")
+EDD.thin <- thin(as.data.frame(EDD.points.WH), lat.col = "Latitude", 
+                 long.col = "Longitude", spec.col = "SciName", 
+                 thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
+                 max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
+                 out.base = "EDD.thin")
 EDD.thin <- setDT(EDD.thin[[1]])
 
 # visualize
@@ -252,10 +223,10 @@ ggplot()+ coord_fixed()+ wm +
 occurrences.thin <- rbind(hyacinth.thin, EDD.thin)
 occurrences.thin$SciName <- "Eicchornia crassipes"
 occurrences.thin <- thin(as.data.frame(occurrences.thin), lat.col = "Latitude", 
-                       long.col = "Longitude", spec.col = "SciName", 
-                       thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
-                       max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
-                       out.base = "occurr.thin")
+                         long.col = "Longitude", spec.col = "SciName", 
+                         thin.par = 1, reps = 1, locs.thinned.list.return = TRUE, write.files = TRUE, 
+                         max.files = 1, out.dir = "C:\\Users\\Delia Anderson\\Desktop\\SDM 2021", 
+                         out.base = "occurr.thin")
 occurrences.thin <- setDT(occurrences.thin[[1]]) 
 
 # visualize
@@ -266,22 +237,55 @@ ggplot()+ coord_fixed()+ wm +
   theme_bw()+
   print(ggtitle("All Thinned Hyacinth Occurrences"))
 
-#### start water buffer cleaning ####
-# import WAT_2000 raster from Harmoized world soils and reproject to ESPG:4326
-WATER = raster("C:\\Users\\Delia Anderson\\Desktop\\SDM 2021\\Rstudio data\\water_bodies.asc")
+
+#### Slim dataset to only North American occurrences ####
+# import raster
+climateNA <- raster("C:\\Users\\Delia Anderson\\Downloads\\Normal_1981_2010_MAT.tif")
+climateNA <- projectRaster(climateNA, crs = '+proj=longlat +datum=WGS84 +nodefs') # must convert CRS using projectRaster 
+plot(climateNA)
+points(occurrences.thin$Longitude, occurrences.thin$Latitude)
+
+# extract only lat/long from occurrences
+hyacinth.NA <- occurrences.thin[ ,c("Longitude", "Latitude")]
+# extract climate values using lat\long
+climate.extract <- as.data.frame(raster::extract(climateNA, hyacinth.NA))
+# merge datasets 
+hyacinth.NA <- cbind(hyacinth.NA, climate.extract)
+
+# filter N/A values to reduce dataset to north american occurrences
+hyacinth.NA <- rename(hyacinth.NA, 'Climate' = 'raster::extract(climateNA, hyacinth.NA)')
+hyacinth.NA <- hyacinth.NA%>%
+  filter(!is.na(Climate)) # 952 to 648 occurrences
+
+# plot to check
+plot(climateNA)
+points(hyacinth.NA$Longitude, hyacinth.NA$Latitude)
+
+# crop map extent to better visualize layer
+ext <- extent(-180, -40, 10, 90)
+climate.crop <- crop(climateNA, ext)
+plot(climate.crop, main = "Hyacinth North American Occurrences")
+points(hyacinth.NA$Longitude, hyacinth.NA$Latitude)
+
+# remove climate values (only used for clipping to NA)
+hyacinth.NA <- hyacinth.NA[ ,c("Longitude", "Latitude")]
+
+#### Clean by water feature -- semi-/aquatic species only ####
+# import .tif file and reproject
+WATER <- raster("C:\\Users\\Delia Anderson\\Downloads\\GlcShare_v10_11 (1)\\glc_shv10_11.Tif")
 projection(WATER) <- 4326
 
 # extract values using bilinear method 
-WAT.extract <- as.data.frame(raster::extract(WATER, occurrences.thin, method = 'bilinear'))
-
+WAT.extract <- as.data.frame(raster::extract(WATER, hyacinth.NA, method = 'bilinear'))
 # merge extract values and x,y coordinates
-occurrences.plus.water <- cbind(WAT.extract, occurrences.thin)
-
+occurrences.plus.water <- cbind(WAT.extract, hyacinth.NA)
 # rename water extract values column
-occurrences.plus.water <- rename(occurrences.plus.water, 'water' = 'raster::extract(WATER, occurrences.thin, method = "bilinear")')
+occurrences.plus.water <- rename(occurrences.plus.water, 'water' = 
+                                   'raster::extract(WATER, hyacinth.NA, method = "bilinear")')
 # filter out occurrences without water value
 occurrences.plus.water <- occurrences.plus.water%>%
   filter(water != "0")
+
 # visualize
 wm <- borders("world", colour="gray50", fill="gray50")
 ggplot()+ coord_fixed()+ wm +
@@ -290,59 +294,5 @@ ggplot()+ coord_fixed()+ wm +
   theme_bw()+
   print(ggtitle("Hyacinth Occurrences Water Buffer Clean"))
 
-# write csv
-write.csv(occurrences.plus.water, "Hyacinth.full.clean.csv")
-
-# import raster
-climateNA <- raster("C:\\Users\\Delia Anderson\\Downloads\\Normal_1981_2010_MAT.tif")
-
-# reproject climate NA using projectRaster to transform CRS rather than set using projection()<-
-climate <- projectRaster(climateNA, WATER)
-crs(climate)
-plot(climate)
-points(occurrences.plus.water$Longitude, occurrences.plus.water$Latitude)
-
-# assign climate values to occurrences and merge lat/lon and value datasets
-hyacinth.NA <- occurrences.plus.water[ ,c("Longitude", "Latitude")]
-climate.extract <- as.data.frame(raster::extract(climate, hyacinth.NA))
-hyacinth.NA <- cbind(hyacinth.NA, climate.extract)
-
-# filter N/A values to reduce dataset to north american occurrences
-hyacinth.NA <- rename(hyacinth.NA, 'Climate' = 'raster::extract(climate, hyacinth.NA)')
-hyacinth.NA <- hyacinth.NA%>%
-  filter(!is.na(Climate))
-
-# plot to check
-plot(climate)
-points(hyacinth.NA$Longitude, hyacinth.NA$Latitude)
-
-# crop map extent to better visualize layer
-ext <- extent(-180, -40, 10, 90)
-climate.crop <- crop(climate, ext)
-plot(climate.crop, main = "Hyacinth North American Occurrences")
-points(hyacinth.NA$Longitude, hyacinth.NA$Latitude)
-
-
-
-# adding land raster 
-NA.land <- raster("NA_NALCMS_2015_v2_land_cover_30m.tif")
-land.repro <- projectRaster(NA.land, climateNA)
-plot(land.repro)
-
-hyacinth.coord <- hyacinth.NA[ ,c("Longitude", "Latitude")]
-land.extract <- as.data.frame(raster::extract(NA.land, hyacinth.coord))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#save as .csv
+write.csv(occurrences.plus.water, "hyacinth_fullclean.csv")
