@@ -130,9 +130,10 @@ vif <- vifstep(geranium.variable.values, th = 5) # threshold value of 5
 vif
 
 # use these results to choose which variables to use in the model
+# vif scores used to determine between 2 correlated variables if necessary 
+# (as shown by Pearson's correlation coefficient)
 
 #################### BIOMOD2 #####################################
-# with the GLC land cover dataset
 
 # crop variables
 ext_limited <- extent(-130, -55, 25, 52)
@@ -173,8 +174,18 @@ geranium_format <-
     na.rm = TRUE
   )
 
-plot(geranium_format) # might show up as all 'undifined', this is because of 
-# the high resolution
+# max distance determined by examining the variable contributions and model evaluation 
+# scores after running test models in increments of 100km distances (i.e. 100 kms, 200 kms, etc)
+# the distance is too great with 1 or 2 variables are contributing the most to the model, compared
+# to the rest of the variables
+# See: VanDerWal, J., L. P. Shoo, C. Graham, and S. E. Williams. 2009. 
+# Selecting pseudo-absence data for presence-only distribution modeling: how far should you stray from what you know? 
+# Ecological Modelling 220:589-594. doi:10.1016/j.ecolmodel.2008.11.010 for full methodology
+
+
+plot(geranium_format) # might show up as all 'undifined', this is because of the high resolution
+# to see the loactions of pseudo-absences, use following function:
+
 ## function to get PA dataset - creates a new function
 get_PAtab <- function(bfd){dplyr::bind_cols(x = bfd@coord[, 1],
                                             y = bfd@coord[, 2],
@@ -193,13 +204,8 @@ pres.xy <- get_PAtab(geranium_format)
 plot(get_mask(geranium_format)[['PA1']])
 points(pres.xy, pch = 1)
 
-### now moving on to defining model options *at default for now*
+### now moving on to defining model options *default settings used for all algorithms*
 default_mod_opt <- BIOMOD_ModelingOptions()
-
-# DataSplitTable <- BIOMOD_cv(geranium_format, 
-#                             k = 5, 
-#                             stratified.cv = TRUE, 
-#                             stratify = "block")
 
 geranium_model_out <-
   BIOMOD_Modeling(
@@ -285,6 +291,8 @@ varimp <- apply(variable_importance, c(1,2), mean)
 varimp
 write.csv(varimp,file = paste("geranium_varimp.csv",sep="")) # write csv variable importance doc
 
+
+# to create the variable response curves
 meanVarImport_gbm <- BIOMOD_LoadModels(geranium_model_out, models='GBM')
 meanVarImport_rf <- BIOMOD_LoadModels(geranium_model_out, models='RF')
 meanVarImport_gam <- BIOMOD_LoadModels(geranium_model_out, models='GAM')
@@ -397,6 +405,7 @@ ggplot(EnsVarImport, aes(x = Var1, y = value, color = Var3)) +
     panel.grid.major = element_line(linetype = 2, color = "grey", size = 0.8)
   )
 
+# limit extent if you want to save processing time
 ext_limited <- extent(-130, -115, 32, 52)
 SHM <- crop(SHM, ext_limited)
 DD_0 <- crop(DD_0, ext_limited)
@@ -458,8 +467,8 @@ writeRaster(geranium_current_ensemble, filename = "geranium_current_ensemble.tif
 writeRaster(geranium_current_ensemble_pnw, filename = "geranium_current_ensemble_pnw.tif", overwrite = TRUE)
 writeRaster(geranium_current_ensemble_mv, filename = "geranium_current_ensemble_mv.tif", overwrite = TRUE)
 
-# ensemble response curve
 
+# to see the ensemble response curve
 ensemble_model_response_curve <- BIOMOD_LoadModels(geranium_em)
 
 ensemble_eval_strip <- biomod2::response.plot2(
