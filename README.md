@@ -3,6 +3,7 @@ GitHub repository associated with the masters thesis work entitled:
 EFFECTS OF CLIMATE CHANGE ON THE HABITAT SUITABILITY OF 4 RELATIVELY NEW INVASIVE PLANT SPECIES IN THE PACIFIC NORTHWEST
 
 by Emma K. Nikkel
+
 University of British Columbia, 2022
 
 ***
