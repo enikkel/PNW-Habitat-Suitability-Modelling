@@ -16,7 +16,7 @@ Invasive species are a substantial threat to biodiversity and ecosystem structur
 
 This repo contains all R code to run the habitat suitability modelling for all species studied and can be used for additional species.
 
-Methodolgy and R code for
+Methodolgy and R code for:
 
   - species record cleaning 
   
@@ -31,8 +31,9 @@ Methodolgy and R code for
 
   (Scripts > 'GL_future_climates.R')
 
-**
-Additional files include
+***
+
+Additional files include:
 
   - .csv files of cleaned species records used for modelling 
   
