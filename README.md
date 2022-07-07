@@ -31,7 +31,7 @@ Methodolgy and R code for
 
   (Scripts > 'GL_future_climates.R')
 
-*
+**
 Additional files include
 
   - .csv files of cleaned species records used for modelling 
