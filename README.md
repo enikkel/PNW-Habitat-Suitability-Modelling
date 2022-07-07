@@ -31,12 +31,12 @@ Methodolgy and R code for
 
   (Scripts > 'GL_future_climates.R')
 
+
 Additional files include
 
   - .csv files of cleaned species records used for modelling 
   
-  (_Geranium lucidum_ = 'lucidum_fullclean.csv'; _Pilosella officinarum_ = 'hawkweed_fullclean.csv'
-  _Butomus umbellatus_ = 'umbellatus_fullclean.csv'; _Pontederia crassipes_ = 'hyacinth_fullclean.csv')
+  (_Geranium lucidum_ = 'lucidum_fullclean.csv'; _Pilosella officinarum_ = 'hawkweed_fullclean.csv'; _Butomus umbellatus_ = 'umbellatus_fullclean.csv'; _Pontederia crassipes_ = 'hyacinth_fullclean.csv')
   - .xlsx file of common GBIF issue codes and descriptions
   - R script for downloading GBIF occurrences
 
