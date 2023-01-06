@@ -1,8 +1,21 @@
-GitHub repository associated with the masters thesis work entitled:
+GitHub repository associated with the original research article entitled:
+
+REGIONAL HABITAT SUITABILITY FOR AQUATIC AND TERRESTRIAL INVASIVE PLANT SPECIES MAY EXPAND OR CONTRACT WITH CLIMATE CHANGE
+
+by Emma Nikkel, David R. Clements, Delia Anderson, Jennifer L. Williams
+
+***
+Abstract:
+
+The threat of invasive species to biodiversity and ecosystem structure is exacerbated by the increasingly concerning outlook of predicted climate change and other human influences. Developing preventative management strategies for invasive plant species before they establish is crucial for effective management. To examine how climate change may impact habitat suitability, we modeled the current and future habitat suitability of two terrestrial species, Geranium lucidum and Pilosella officinarum, and two aquatic species, Butomus umbellatus and Pontederia crassipes, that are relatively new invasive plant species regionally, and are currently spreading in the Pacific Northwest (PNW, North America), an area of unique natural areas, vibrant economic activity, and increasing human population. Using North American presence records, downscaled climate variables, and human influence data, we modelled the potential habitat suitability under current conditions and projected climate scenarios RCP 4.5, 7.0, and 8.5 for 2050 and 2080. One terrestrial species (P. officinarum) showed declining habitat suitability in future climate scenarios (contracted distribution), while the other terrestrial species (G. lucidum) showed greatly increased suitability over much of the region (expanded distribution overall). The two aquatic species were predicted to have only moderately increased suitability, suggesting aquatic plant species may be less impacted by climate change. Our research provides a template for regional-scale modelling of invasive species of concern, thus assisting local land managers and practitioners to inform current and future management strategies and to prioritize limited available resources for species with expanding ranges.
+
+***
+
+As well as the masters thesis work entitled:
 
 EFFECTS OF CLIMATE CHANGE ON THE HABITAT SUITABILITY OF 4 RELATIVELY NEW INVASIVE PLANT SPECIES IN THE PACIFIC NORTHWEST
 
-by Emma K. Nikkel
+by Emma Nikkel
 
 University of British Columbia, 2022
 
